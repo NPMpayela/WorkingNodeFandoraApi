@@ -2,12 +2,13 @@ const express = require('express')
 const app = express()
 const {connect ,client} = require('../db/db.js')
 const db = client.db('Blogs')
-const bcrypt = require('bcrypt')
+const bcrypt = require('bcryptjs')
 const jwt = require('jsonwebtoken')
 const { message } = require('statuses')
 const ExpressBrute = require('express-brute')
 const store = new ExpressBrute.MemoryStore()
 const brute = new ExpressBrute(store)
+const { ObjectId } = require('mongodb');
 
 app.use(express.json());
 
@@ -114,43 +115,19 @@ app.post('/register', async (req,res) => {
     }
 })
 
-//Create Event
-// app.post('/CreateEvent', async (req, res) => {
-//     try {
-//         // Check if required fields are present
-//         const { eventName, organiser, location, category, date, details } = req.body;
-
-//         let EventModel = {
-//             eventName: req.body.eventName,
-//             organisers: req.body.organisers,
-//             category: req.body.category,   
-//             location: req.body.location,    
-//             date: req.body.date,
-//             details: req.body.details 
-//         }
-
-//         let collection = await db.collection('Events');
-//         await collection.insertOne(EventModel);
-        
-//         res.status(201).json({ message: `Successfully created.`, success: true });
-//     } catch (err) {
-//         console.error(err);
-//         res.status(500).json({ message: 'Internal server error', success: false });
-//     }
-// });
 
 //Create Event
 app.post('/CreateEvent', async (req,res) => {
     try{
  
      // Check if required fields are present
-     const { EventName, Organiser, location, category, date, details  } = req.body;
+     const { eventName, organisers, location, category, date, details  } = req.body;
      
      
  
      let EventModel = {
-        eventName : req.body.EventName,
-        organisers : req.body.Organiser,
+        eventName : req.body.eventName,
+        organisers : req.body.organisers,
         category :  req.body.location,
         location :  req.body.category,
         date :      req.body.date,
@@ -167,6 +144,55 @@ app.post('/CreateEvent', async (req,res) => {
         res.status(500).json({ message: 'Internal server error', success: false });
     }
  });
+ 
+
+// Delete all events with null eventName
+app.delete('/Events/nullNames', async (req, res) => {
+    try {
+        let collection = await db.collection('Events');
+        const result = await collection.deleteMany({ eventName: null }); // Match by null eventName
+
+        if (result.deletedCount === 0) {
+            return res.status(404).json({ message: 'No events found with null event names.', success: false });
+        }
+
+        res.status(200).json({ message: `${result.deletedCount} events with null event names successfully deleted.`, success: true });
+    } catch (err) {
+        console.error('Error deleting events with null event names:', err); // Log the error for debugging
+        res.status(500).json({ message: 'Internal server error', success: false });
+    }
+});
+
+
+
+
+
+// Delete Event
+app.delete('/Events', async (req, res) => {
+    try {
+        // Check if required fields are present
+        const { _id } = req.body;
+
+        // Check if _id is provided
+        if (!_id) {
+            return res.status(400).json({ message: 'Event ID is required.', success: false });
+        }
+
+        let collection = await db.collection('Events');
+        const result = await collection.deleteOne({ _id: new ObjectId(_id) }); // Make sure to convert to ObjectId
+
+        if (result.deletedCount === 0) {
+            return res.status(404).json({ message: 'Event not found.', success: false });
+        }
+
+        res.status(200).json({ message: 'Event successfully deleted.', success: true });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: 'Internal server error', success: false });
+    }
+});
+
+
 
 // Get all events
 app.get('/Events', async (req, res) => {
