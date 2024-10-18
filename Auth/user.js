@@ -1,7 +1,7 @@
 const express = require('express')
 const app = express()
 const {connect ,client} = require('../db/db.js')
-const db = client.db('Blogs')
+const db = client.db('EventAppDB1')
 const bcrypt = require('bcryptjs')
 const jwt = require('jsonwebtoken')
 const { message } = require('statuses')
@@ -163,10 +163,6 @@ app.delete('/Events/nullNames', async (req, res) => {
     }
 });
 
-
-
-
-
 // Delete Event
 app.delete('/Events', async (req, res) => {
     try {
@@ -191,8 +187,6 @@ app.delete('/Events', async (req, res) => {
         res.status(500).json({ message: 'Internal server error', success: false });
     }
 });
-
-
 
 // Get all events
 app.get('/Events', async (req, res) => {
