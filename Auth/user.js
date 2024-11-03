@@ -128,8 +128,8 @@ app.post('/CreateEvent', async (req,res) => {
      let EventModel = {
         eventName : req.body.eventName,
         organisers : req.body.organisers,
-        category :  req.body.location,
-        location :  req.body.category,
+        category :  req.body.category,
+        location :  req.body.location,
         date :      req.body.date,
         details :   req.body.details 
      }
